@@ -1,124 +1,64 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 #####################################
 #                                   #
 #      Created by Stew Alexander    #
-#                2021               #
+#      last updated 11/2023.        #
 #                                   #
 #####################################
 
 import os
-from re import I
-import sys
-import time
+import csv
 import subprocess
-import json
+import sys
 
-#check if the rich module exists, if not, install it
+def install_package(package_name):
+    """Installs a package using pip."""
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+
 try:
-    from rich import print
-    from rich import pretty
+    from simple_term_menu import TerminalMenu
 except ImportError:
-    subprocess.call([sys.executable, "-m", "pip", "install", "rich"])
-    import rich
-    time.sleep (10)
-    from rich import print as rprint
-
-#Try to upgrade the rich module
-try:
-    subprocess.call([sys.executable, "-m", "pip", "install", "--upgrade", "rich"])
-    time.sleep (10)
-    from rich import print as rprint
-except:
-    pass
-
-#Try to import the csv library, if it doesn't exist, install it
-try:
-    import csv
-except ImportError:
-    print("[!] The csv library is not installed. Installing...")
-    os.system("pip install csv")
-    print("[+] The csv library has been installed.")
-    time.sleep(30)
-    import csv
-
-word_list = []  
-
-print('''[yellow]
-  __  __               _____   ___     _____    _____  __      __
- |  \/  |     /\      / ____| |__ \   / ____|  / ____| \ \    / /
- | \  / |    /  \    | |         ) | | |      | (___    \ \  / / 
- | |\/| |   / /\ \   | |        / /  | |       \___ \    \ \/ /  
- | |  | |  / ____ \  | |____   / /_  | |____   ____) |    \  /   
- |_|  |_| /_/    \_\  \_____| |____|  \_____| |_____/      \/                                                                                                                                    
-''')
-
-
-print('''[bright_cyan]
- ┌───────────────────────────────────────────┐
- │    [white]Turns a MAC Address Hardware Table[/white]     │
- │    [white]or IP ARP into a csv file for easy[/white]     │
- │    [white]import and review by your favorite[/white]     │
- │    [white]spreadsheet application[/white]                │
- │                                           │
- └───────────────────────────────────────────┘
-[/bright_cyan]''')
-
-
-#Show the contents of the current directory
-print("\nPlease select the [italic green]ARP[/italic green] or [italic green]MAC[/italic green] Data text file from the current directory\n")
-print(os.listdir(), "\n")
-
-#while the file name is not valid, ask the user to input the file name again
-while True:
-    ip_arp_file = input("Please enter the file name: ")
-    if os.path.isfile(ip_arp_file):
-        break
+    user_choice = input("simple-term-menu is not installed. Would you like to install it? [y/N]: ").lower()
+    if user_choice == 'y':
+        print("Attempting to install simple-term-menu...")
+        install_package("simple-term-menu")
+        print("Please restart the script to use the newly installed package.")
+        sys.exit()
     else:
-        print("\n[italic yellow]The file name is not valid, please try again[/italic yellow]\n")
+        print("Please install simple-term-menu manually to proceed. Exiting.")
+        sys.exit()
 
-#Open the file
-with open(ip_arp_file, 'r') as f:
-#split each line into a list called "words"
-    for line in f:
-        word= line.split()
-       #append each word to the word_list
-        word_list.append(word)
-#close the file
-f.close()
+def pick_file():
+    """Let the user pick a file using a TUI menu."""
+    files = [f for f in os.listdir() if os.path.isfile(f) and f.endswith('.txt')]
+    if not files:
+        print("No .txt files found in the directory. Please add some and rerun the script.")
+        sys.exit()
+    terminal_menu = TerminalMenu(files, title="Select a file:")
+    menu_entry_index = terminal_menu.show()
+    if menu_entry_index is None:
+        print("No file selected. Exiting.")
+        sys.exit()
+    return files[menu_entry_index]
 
-#Create a new csv file
-csv_file =ip_arp_file.replace(".txt", ".csv")
+# Use the pick_file function to let the user select a text file
+ip_arp_file = pick_file()
 
-with open(csv_file, 'w') as csvfile:
-    #create a csv writer
-    writer = csv.writer(csvfile)
-    #write the word_list to the csv file
-    writer.writerows(word_list) 
+def convert_to_csv(txt_file, csv_file):
+    """Convert a text file to a CSV file."""
+    try:
+        with open(txt_file, 'r') as f, open(csv_file, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            for line in f:
+                writer.writerow(line.strip().split())
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
-#Close the csv file
-csvfile.close()
+# Convert to CSV
+csv_file = ip_arp_file.replace(".txt", ".csv")
+convert_to_csv(ip_arp_file, csv_file)
+print(f"The new CSV File {csv_file} has been created successfully.")
 
-#Convert the newline characters to a PC format
-with open(csv_file , 'r') as f:
-    data = f.read().replace('\r', '')
-    
-#overwrite the file with the new data
-with open(csv_file, 'w') as f:
-    f.write(data)
-
-#Remove duplicate \n characters from the file
-with open(csv_file, 'r') as f:
-    data = f.read().replace('\n\n', '\n')
-#close the file
-f.close()
-
-#overwrite the file with the new data
-with open(csv_file, 'w') as f:
-    f.write(data)
-#close the file
-
-print("The new CSV File [green]" + csv_file + " [/green]has been created successfully in the current directory")
-#press return to quit
-print("\n[yellow]Press [bright_blue underline]enter[/bright_blue underline] or [bright_blue underline]return[/bright_blue underline] to quit[/yellow] ".rstrip())
-input("> ")   
+# Press return to quit
+input("\nPress [return] to quit")
