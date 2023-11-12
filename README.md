@@ -6,10 +6,8 @@ Converts the output of a **MAC Address Table** such as "```# sh mac address```" 
 ## Why
 * Having this information in a spreadsheet allows for record keeping and retrieval that is useful to Network and Systems Engineers (such as myself 😄)
 ----
-## Output Example
-![image](https://user-images.githubusercontent.com/48565067/165385408-62f15246-1e20-4bd3-a727-dc32535d0032.png)
-![image](https://user-images.githubusercontent.com/48565067/165385563-250e3d6c-9a26-4292-b611-ae4b046c5a0e.png)
 ## Updates / Fixes
+* Added file picker, removed uneeded splash screen, added resiliency to code (11/12/2023)
 * Automatically checks and attempts to update the required libraries (05/19/2022)
 * Added the name as a banner and info box on what the app does (04/26/2022)
 
